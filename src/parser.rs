@@ -6,7 +6,6 @@ pub type Result<T> = std::result::Result<T, ParseError>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ParseError {
-    UnexpectedToken(Token),
     NotExpression(Token),
     NotOperator(Token),
     UnclosedOpenParen(Token),
@@ -15,13 +14,13 @@ pub enum ParseError {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum AstNode {
+pub enum AstNode {
     Num(u64),
     UniOp { op: UniOp, e: Box<Ast> },
     BinOp { op: BinOp, l: Box<Ast>, r: Box<Ast> },
 }
 
-type Ast = Annot<AstNode>;
+pub type Ast = Annot<AstNode>;
 
 impl Ast {
     fn num(n: u64, loc: Loc) -> Self {
@@ -44,12 +43,12 @@ impl Ast {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum UniOpKind {
+pub enum UniOpKind {
     Plus,
     Minus,
 }
 
-type UniOp = Annot<UniOpKind>;
+pub type UniOp = Annot<UniOpKind>;
 
 impl UniOp {
     fn plus(loc: Loc) -> Self {
@@ -61,14 +60,14 @@ impl UniOp {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum BinOpKind {
+pub enum BinOpKind {
     Add,
     Sub,
     Mul,
     Div,
 }
 
-type BinOp = Annot<BinOpKind>;
+pub type BinOp = Annot<BinOpKind>;
 
 impl BinOp {
     fn add(loc: Loc) -> Self {
@@ -85,7 +84,7 @@ impl BinOp {
     }
 }
 
-fn parse(tokens: Vec<Token>) -> Result<Ast> {
+pub fn parse(tokens: Vec<Token>) -> Result<Ast> {
     let mut tokens = tokens.into_iter().peekable();
     let ret = parse_expr(&mut tokens)?;
     let ret = match tokens.next() {
@@ -156,15 +155,9 @@ where
         None => return Err(ParseError::Eof),
         Some(token) => token,
     };
-    let ret = match token {
-        Token {
-            value: TokenKind::Plus,
-            loc,
-        } => Ok(BinOp::add(tokens.next().unwrap().loc)),
-        Token {
-            value: TokenKind::Minus,
-            loc,
-        } => Ok(BinOp::sub(tokens.next().unwrap().loc)),
+    let ret = match token.value {
+        TokenKind::Plus => Ok(BinOp::add(tokens.next().unwrap().loc)),
+        TokenKind::Minus => Ok(BinOp::sub(tokens.next().unwrap().loc)),
         _ => Err(ParseError::NotOperator(token.clone())),
     };
     // eprintln!("expr3_op: {:?}", ret);
@@ -194,15 +187,9 @@ where
         None => return Err(ParseError::Eof),
         Some(token) => token,
     };
-    let ret = match token {
-        Token {
-            value: TokenKind::Asterisk,
-            loc,
-        } => Ok(BinOp::mul(tokens.next().unwrap().loc)),
-        Token {
-            value: TokenKind::Slash,
-            loc,
-        } => Ok(BinOp::div(tokens.next().unwrap().loc)),
+    let ret = match token.value {
+        TokenKind::Asterisk => Ok(BinOp::mul(tokens.next().unwrap().loc)),
+        TokenKind::Slash => Ok(BinOp::div(tokens.next().unwrap().loc)),
         _ => Err(ParseError::NotOperator(token.clone())),
     };
     // eprintln!("expr2_op: {:?}", ret);
