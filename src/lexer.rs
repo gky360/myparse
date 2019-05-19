@@ -3,10 +3,10 @@ use std::cmp::{max, min};
 use std::ops::FnMut;
 use std::str::from_utf8;
 
-type Result<T> = std::result::Result<T, LexError>;
+pub type Result<T> = std::result::Result<T, LexError>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct Loc(usize, usize);
+pub struct Loc(usize, usize);
 
 impl Loc {
     fn merge(&self, other: &Loc) -> Loc {
@@ -16,7 +16,7 @@ impl Loc {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct Annot<T> {
+pub struct Annot<T> {
     value: T,
     loc: Loc,
 }
@@ -28,7 +28,7 @@ impl<T> Annot<T> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum TokenKind {
+pub enum TokenKind {
     /// [0-9]+
     Number(u64),
     /// +
@@ -45,7 +45,7 @@ enum TokenKind {
     RParen,
 }
 
-type Token = Annot<TokenKind>;
+pub type Token = Annot<TokenKind>;
 
 impl Token {
     fn number(n: u64, loc: Loc) -> Self {
@@ -72,12 +72,12 @@ impl Token {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum LexErrorKind {
+pub enum LexErrorKind {
     InvalidChar(char),
     Eof,
 }
 
-type LexError = Annot<LexErrorKind>;
+pub type LexError = Annot<LexErrorKind>;
 
 impl LexError {
     fn invalid_char(c: char, loc: Loc) -> Self {
@@ -89,20 +89,20 @@ impl LexError {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct Lexer<'a> {
+pub struct Lexer<'a> {
     input: &'a [u8],
     pos: RefCell<usize>,
 }
 
 impl<'a> Lexer<'a> {
-    fn new(input: &'a str) -> Self {
+    pub fn new(input: &'a str) -> Self {
         Self {
             input: input.as_bytes(),
             pos: RefCell::new(0),
         }
     }
 
-    fn lex(&self) -> Result<Vec<Token>> {
+    pub fn lex(&self) -> Result<Vec<Token>> {
         let mut tokens = Vec::new();
 
         macro_rules! lex_a_token {

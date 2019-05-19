@@ -1,3 +1,7 @@
+use std::process;
+
+use myparse;
+
 fn main() {
-    println!("Hello, world!");
+    process::exit(myparse::run())
 }
