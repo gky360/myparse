@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::cmp::{max, min};
+use std::fmt;
 use std::ops::FnMut;
 use std::str::from_utf8;
 
@@ -22,12 +23,31 @@ impl LexError {
     }
 }
 
+impl std::error::Error for LexError {}
+
+impl fmt::Display for LexError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::LexErrorKind::*;
+        let loc = &self.loc;
+        match self.value {
+            InvalidChar(c) => write!(f, "{}: invalid char '{}'", loc, c),
+            Eof => write!(f, "End of file"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Loc(pub usize, pub usize);
 
 impl Loc {
     pub fn merge(&self, other: &Loc) -> Loc {
         Loc(min(self.0, other.0), max(self.1, other.1))
+    }
+}
+
+impl fmt::Display for Loc {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}-{}", self.0, self.1)
     }
 }
 
@@ -59,6 +79,21 @@ pub enum TokenKind {
     LParen,
     /// )
     RParen,
+}
+
+impl fmt::Display for TokenKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::TokenKind::*;
+        match self {
+            Number(n) => n.fmt(f),
+            Plus => write!(f, "+"),
+            Minus => write!(f, "-"),
+            Asterisk => write!(f, "*"),
+            Slash => write!(f, "/"),
+            LParen => write!(f, "("),
+            RParen => write!(f, ")"),
+        }
+    }
 }
 
 pub type Token = Annot<TokenKind>;

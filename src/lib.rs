@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::io;
 use std::io::{BufRead, Write};
 
@@ -24,7 +25,15 @@ pub fn run() -> i32 {
         if let Some(Ok(line)) = lines.next() {
             let ast = match line.parse::<Ast>() {
                 Ok(ast) => ast,
-                Err(_) => unimplemented!(),
+                Err(err) => {
+                    eprintln!("{}", err);
+                    let mut source = err.source();
+                    while let Some(err) = source {
+                        eprintln!("caused by {}", err);
+                        source = err.source();
+                    }
+                    continue;
+                }
             };
             println!("{:?}", ast);
         } else {
