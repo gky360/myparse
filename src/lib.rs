@@ -2,6 +2,7 @@ use std::io;
 use std::io::{BufRead, Write};
 
 mod lexer;
+mod parser;
 
 fn prompt(s: &str) -> io::Result<()> {
     let stdout = io::stdout();

@@ -6,23 +6,39 @@ use std::str::from_utf8;
 pub type Result<T> = std::result::Result<T, LexError>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Loc(usize, usize);
+pub enum LexErrorKind {
+    InvalidChar(char),
+    Eof,
+}
+
+pub type LexError = Annot<LexErrorKind>;
+
+impl LexError {
+    fn invalid_char(c: char, loc: Loc) -> Self {
+        LexError::new(LexErrorKind::InvalidChar(c), loc)
+    }
+    fn eof(loc: Loc) -> Self {
+        LexError::new(LexErrorKind::Eof, loc)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Loc(pub usize, pub usize);
 
 impl Loc {
-    fn merge(&self, other: &Loc) -> Loc {
-        assert!(max(self.0, other.0) <= min(self.1, other.1));
+    pub fn merge(&self, other: &Loc) -> Loc {
         Loc(min(self.0, other.0), max(self.1, other.1))
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Annot<T> {
-    value: T,
-    loc: Loc,
+    pub value: T,
+    pub loc: Loc,
 }
 
 impl<T> Annot<T> {
-    fn new(value: T, loc: Loc) -> Self {
+    pub fn new(value: T, loc: Loc) -> Self {
         Self { value, loc }
     }
 }
@@ -48,43 +64,26 @@ pub enum TokenKind {
 pub type Token = Annot<TokenKind>;
 
 impl Token {
-    fn number(n: u64, loc: Loc) -> Self {
+    pub fn number(n: u64, loc: Loc) -> Self {
         Self::new(TokenKind::Number(n), loc)
     }
-    fn plus(loc: Loc) -> Self {
+    pub fn plus(loc: Loc) -> Self {
         Self::new(TokenKind::Plus, loc)
     }
-    fn minus(loc: Loc) -> Self {
+    pub fn minus(loc: Loc) -> Self {
         Self::new(TokenKind::Minus, loc)
     }
-    fn asterisk(loc: Loc) -> Self {
+    pub fn asterisk(loc: Loc) -> Self {
         Self::new(TokenKind::Asterisk, loc)
     }
-    fn slash(loc: Loc) -> Self {
+    pub fn slash(loc: Loc) -> Self {
         Self::new(TokenKind::Slash, loc)
     }
-    fn lparen(loc: Loc) -> Self {
+    pub fn lparen(loc: Loc) -> Self {
         Self::new(TokenKind::LParen, loc)
     }
-    fn rparen(loc: Loc) -> Self {
+    pub fn rparen(loc: Loc) -> Self {
         Self::new(TokenKind::RParen, loc)
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum LexErrorKind {
-    InvalidChar(char),
-    Eof,
-}
-
-pub type LexError = Annot<LexErrorKind>;
-
-impl LexError {
-    fn invalid_char(c: char, loc: Loc) -> Self {
-        LexError::new(LexErrorKind::InvalidChar(c), loc)
-    }
-    fn eof(loc: Loc) -> Self {
-        LexError::new(LexErrorKind::Eof, loc)
     }
 }
 
