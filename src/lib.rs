@@ -1,8 +1,7 @@
 use std::io;
 use std::io::{BufRead, Write};
 
-use lexer::Lexer;
-use parser::parse;
+use parser::Ast;
 
 mod lexer;
 mod parser;
@@ -23,8 +22,10 @@ pub fn run() -> i32 {
     loop {
         prompt("> ").unwrap();
         if let Some(Ok(line)) = lines.next() {
-            let tokens = Lexer::new(&line).lex().unwrap();
-            let ast = parse(tokens);
+            let ast = match line.parse::<Ast>() {
+                Ok(ast) => ast,
+                Err(_) => unimplemented!(),
+            };
             println!("{:?}", ast);
         } else {
             break;

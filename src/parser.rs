@@ -1,6 +1,7 @@
 use std::iter::Peekable;
+use std::str::FromStr;
 
-use super::lexer::{Annot, Loc, Token, TokenKind};
+use super::lexer::{Annot, LexError, Lexer, Loc, Token, TokenKind};
 
 pub type Result<T> = std::result::Result<T, ParseError>;
 
@@ -11,6 +12,24 @@ pub enum ParseError {
     UnclosedOpenParen(Token),
     RedundantExpression(Token),
     Eof,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Error {
+    Lexer(LexError),
+    Parser(ParseError),
+}
+
+impl From<LexError> for Error {
+    fn from(e: LexError) -> Self {
+        Error::Lexer(e)
+    }
+}
+
+impl From<ParseError> for Error {
+    fn from(e: ParseError) -> Self {
+        Error::Parser(e)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -39,6 +58,15 @@ impl Ast {
             },
             loc,
         )
+    }
+}
+
+impl FromStr for Ast {
+    type Err = Error;
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let tokens = Lexer::new(s).lex()?;
+        let ast = parse(tokens)?;
+        Ok(ast)
     }
 }
 
@@ -84,7 +112,7 @@ impl BinOp {
     }
 }
 
-pub fn parse(tokens: Vec<Token>) -> Result<Ast> {
+fn parse(tokens: Vec<Token>) -> Result<Ast> {
     let mut tokens = tokens.into_iter().peekable();
     let ret = parse_expr(&mut tokens)?;
     let ret = match tokens.next() {
