@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::io;
 use std::io::{BufRead, Write};
 
@@ -6,6 +5,15 @@ use parser::Ast;
 
 mod lexer;
 mod parser;
+
+fn show_trace<E: std::error::Error>(err: E) {
+    eprintln!("{}", err);
+    let mut source = err.source();
+    while let Some(err) = source {
+        eprintln!("caused by: {}", err);
+        source = err.source();
+    }
+}
 
 fn prompt(s: &str) -> io::Result<()> {
     let stdout = io::stdout();
@@ -26,12 +34,8 @@ pub fn run() -> i32 {
             let ast = match line.parse::<Ast>() {
                 Ok(ast) => ast,
                 Err(err) => {
-                    eprintln!("{}", err);
-                    let mut source = err.source();
-                    while let Some(err) = source {
-                        eprintln!("caused by {}", err);
-                        source = err.source();
-                    }
+                    err.show_diagnostic(&line);
+                    show_trace(err);
                     continue;
                 }
             };

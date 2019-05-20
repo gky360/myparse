@@ -41,10 +41,45 @@ impl fmt::Display for ParseError {
     }
 }
 
+fn print_annot(input: &str, loc: &Loc) {
+    eprintln!("{}", input);
+    eprintln!("{}{}", " ".repeat(loc.0), "^".repeat(loc.1 - loc.0));
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Error {
     Lexer(LexError),
     Parser(ParseError),
+}
+
+impl Error {
+    pub fn show_diagnostic(&self, input: &str) {
+        use self::Error::*;
+        use self::ParseError as P;
+        let temp_loc;
+        let (err, loc): (&std::error::Error, &Loc) = match self {
+            Lexer(err) => (err, &err.loc),
+            Parser(err) => (
+                err,
+                match err {
+                    P::UnexpectedToken(Token { loc, .. })
+                    | P::NotExpression(Token { loc, .. })
+                    | P::NotOperator(Token { loc, .. })
+                    | P::UnclosedOpenParen(Token { loc, .. }) => loc,
+                    P::RedundantExpression(Token { loc, .. }) => {
+                        temp_loc = Loc(loc.0, input.len());
+                        &temp_loc
+                    }
+                    P::Eof => {
+                        temp_loc = Loc(input.len(), input.len() + 1);
+                        &temp_loc
+                    }
+                },
+            ),
+        };
+        eprintln!("{}", err);
+        print_annot(input, loc);
+    }
 }
 
 impl From<LexError> for Error {
