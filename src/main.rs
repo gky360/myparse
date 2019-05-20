@@ -1,7 +1,9 @@
 use std::process;
+use structopt::StructOpt;
 
 use myparse;
 
 fn main() {
-    process::exit(myparse::run())
+    let opt = myparse::Opt::from_args();
+    process::exit(myparse::run(&opt));
 }

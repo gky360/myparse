@@ -1,12 +1,24 @@
 use std::io;
 use std::io::{BufRead, Write};
+use structopt::StructOpt;
 
 use interpreter::Interpreter;
 use parser::Ast;
+use rpn_compiler::RpnCompiler;
 
 mod interpreter;
 mod lexer;
 mod parser;
+mod rpn_compiler;
+
+/// Command line options
+#[derive(StructOpt, Debug)]
+#[structopt()]
+pub struct Opt {
+    /// Use RPN compiler mode
+    #[structopt(short = "c", long = "compiler")]
+    pub use_compiler: bool,
+}
 
 fn show_trace<E: std::error::Error>(err: E) {
     eprintln!("{}", err);
@@ -24,8 +36,9 @@ fn prompt(s: &str) -> io::Result<()> {
     stdout.flush()
 }
 
-pub fn run() -> i32 {
+pub fn run(opt: &Opt) -> i32 {
     let mut interp = Interpreter::new();
+    let mut compiler = RpnCompiler::new();
 
     let stdin = io::stdin();
     let stdin = stdin.lock();
@@ -44,16 +57,20 @@ pub fn run() -> i32 {
                 }
             };
 
-            let n = match interp.eval(&ast) {
-                Ok(n) => n,
-                Err(err) => {
-                    err.show_diagnostic(&line);
-                    show_trace(err);
-                    continue;
-                }
-            };
-
-            println!("{}", n);
+            if opt.use_compiler {
+                let rpn = compiler.compile(&ast);
+                println!("{}", rpn);
+            } else {
+                let n = match interp.eval(&ast) {
+                    Ok(n) => n,
+                    Err(err) => {
+                        err.show_diagnostic(&line);
+                        show_trace(err);
+                        continue;
+                    }
+                };
+                println!("{}", n);
+            }
         } else {
             break;
         }
