@@ -65,11 +65,11 @@ impl Interpreter {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum InterpreterErrorKind {
+pub enum InterpreterErrorKind {
     DivisionByZero,
 }
 
-type InterpreterError = Annot<InterpreterErrorKind>;
+pub type InterpreterError = Annot<InterpreterErrorKind>;
 
 impl InterpreterError {
     pub fn show_diagnostic(&self, input: &str) {
@@ -86,6 +86,9 @@ impl std::error::Error for InterpreterError {}
 
 impl fmt::Display for InterpreterError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "division by zero error")
+        write!(
+            f,
+            "division by zero: the right hand expression of the division evaluates to zero"
+        )
     }
 }

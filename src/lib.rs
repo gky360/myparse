@@ -1,6 +1,7 @@
 use std::io;
 use std::io::{BufRead, Write};
 
+use interpreter::Interpreter;
 use parser::Ast;
 
 mod interpreter;
@@ -24,6 +25,8 @@ fn prompt(s: &str) -> io::Result<()> {
 }
 
 pub fn run() -> i32 {
+    let mut interp = Interpreter::new();
+
     let stdin = io::stdin();
     let stdin = stdin.lock();
     let stdin = io::BufReader::new(stdin);
@@ -40,7 +43,17 @@ pub fn run() -> i32 {
                     continue;
                 }
             };
-            println!("{:?}", ast);
+
+            let n = match interp.eval(&ast) {
+                Ok(n) => n,
+                Err(err) => {
+                    err.show_diagnostic(&line);
+                    show_trace(err);
+                    continue;
+                }
+            };
+
+            println!("{}", n);
         } else {
             break;
         }
