@@ -3,6 +3,7 @@ use std::io::{BufRead, Write};
 
 use parser::Ast;
 
+mod interpreter;
 mod lexer;
 mod parser;
 

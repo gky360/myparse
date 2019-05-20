@@ -41,7 +41,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-fn print_annot(input: &str, loc: &Loc) {
+pub fn print_annot(input: &str, loc: &Loc) {
     eprintln!("{}", input);
     eprintln!("{}{}", " ".repeat(loc.0), "^".repeat(loc.1 - loc.0));
 }
